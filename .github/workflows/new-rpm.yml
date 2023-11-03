@@ -21,6 +21,7 @@ jobs:
       
       - name: Update repo data
         run: |
+          sudo yum install -y createrepo
           createrepo x86_64/
           createrepo aarch64/
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
