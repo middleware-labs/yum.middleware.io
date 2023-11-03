@@ -1,0 +1,34 @@
+name: New RPM 
+on:
+  push:
+    branches: [ "master" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GHCR_TOKEN }}
+          ssh-key: ${{ secrets.CHECK_AGENT_ACCESS }}
+      
+      - name: Update repo data
+        run: |
+          createrepo x86_64/
+          createrepo aarch64/
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -a -m "[GITHUB ACTION] Updated Repo Data"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          token: ${{ secrets.GHCR_TOKEN }}
+          ssh-key: ${{ secrets.CHECK_AGENT_ACCESS }}
+  
