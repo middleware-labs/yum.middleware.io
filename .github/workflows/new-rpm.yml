@@ -60,7 +60,14 @@ jobs:
         docker run -v ${{ github.workspace }}:/workspace centos:8 /bin/bash -c "sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && dnf install -y createrepo && createrepo /workspace/x86_64/ && createrepo /workspace/aarch64/"
       shell: bash
 
-    - name: Commit and Push Changes
+    - name: Update repo data
       run: |
-        docker run -v ${{ github.workspace }}:/workspace centos:8 /bin/bash -c "sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && dnf install -y git && cd /workspace && git config --local user.email 'actions@github.com' && git config --local user.name 'GitHub Actions' && git add . && git commit -m '[GITHUB ACTION] Updated Repo Data' && git push"
-      shell: bash
+        git config --local user.email "github-actions@github.com"
+        git config --local user.name "github-actions"
+        git commit -a -m "[GITHUB ACTION] Updated Repo Data"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        token: ${{ secrets.GHCR_TOKEN }}
+        ssh-key: ${{ secrets.CHECK_AGENT_ACCESS }}
