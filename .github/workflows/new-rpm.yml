@@ -66,8 +66,6 @@ jobs:
         git config --local user.name "github-actions"
         git commit -a -m "[GITHUB ACTION] Updated Repo Data"
 
+
     - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GHCR_TOKEN }}
-        ssh: ${{ secrets.CHECK_AGENT_ACCESS }}
+      run: git push origin master
