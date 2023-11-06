@@ -1,9 +1,6 @@
 name: New RPM Workflow
 
-on:
-  push:
-    branches:
-      - testing# Adjust this to match your repository's default branch
+on: workflow_dispatch
 
 jobs:
   build:
