@@ -62,5 +62,5 @@ jobs:
 
     - name: Commit and Push Changes
       run: |
-        docker run -v ${{ github.workspace }}:/workspace centos:8 /bin/bash -c "dnf install -y git && cd /workspace && git config --local user.email 'actions@github.com' && git config --local user.name 'GitHub Actions' && git add . && git commit -m '[GITHUB ACTION] Updated Repo Data' && git push"
+        docker run -v ${{ github.workspace }}:/workspace centos:8 /bin/bash -c "sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && dnf install -y git && cd /workspace && git config --local user.email 'actions@github.com' && git config --local user.name 'GitHub Actions' && git add . && git commit -m '[GITHUB ACTION] Updated Repo Data' && git push"
       shell: bash
