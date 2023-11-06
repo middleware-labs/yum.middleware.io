@@ -69,5 +69,5 @@ jobs:
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
-        token: ${{ secrets.GHCR_TOKEN }}
-        ssh-key: ${{ secrets.CHECK_AGENT_ACCESS }}
+        github_token: ${{ secrets.GHCR_TOKEN }}
+        ssh: ${{ secrets.CHECK_AGENT_ACCESS }}
