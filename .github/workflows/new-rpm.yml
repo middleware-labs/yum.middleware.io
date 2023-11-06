@@ -10,7 +10,7 @@ env:
   
 jobs:
   build:
-    runs-on: RPM Based    
+    runs-on: self-hosted    
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout repo
