@@ -1,0 +1,69 @@
+name: Rebuild repodata
+
+# Keeps <arch>/repodata/ in step with <arch>/Packages/. The mw-agent release
+# workflow pushes each new rpm here; this rebuilds the index right after. The
+# commit this workflow pushes only changes repodata/, so it doesn't start
+# another run.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - '*/Packages/**'
+
+# A release pushes one rpm per architecture, one after the other, so runs can
+# overlap. Queue them rather than cancel: each run indexes what master has
+# when it starts.
+concurrency:
+  group: rebuild-repodata
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      # Blobless and sparse: the packages (several GB) aren't checked out.
+      # rebuild-repodata.sh downloads only the ones it has to read.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Pushed with the same token as the mw-agent release, whose pushes
+          # are known to publish the site.
+          token: ${{ secrets.GHCR_TOKEN }}
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            .github
+            x86_64/repodata
+            aarch64/repodata
+
+      - name: Install createrepo_c
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y createrepo-c
+
+      - name: Rebuild and push repodata
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4 5; do
+            .github/scripts/rebuild-repodata.sh
+            git add -A -- '*/repodata/*'
+            if git diff --cached --quiet; then
+              echo "repodata is already up to date."
+              exit 0
+            fi
+            git commit -q -m "Rebuild repodata"
+            if git push origin HEAD:master; then
+              exit 0
+            fi
+            # master moved (e.g. the next arch's rpm landed): rebuild on top of it.
+            echo "Push rejected (attempt ${attempt}); rebuilding on the new master."
+            sleep $((attempt * 5))
+            git fetch origin master
+            git reset -q --hard origin/master
+          done
+          echo "Could not push repodata after ${attempt} attempts."
+          exit 1
